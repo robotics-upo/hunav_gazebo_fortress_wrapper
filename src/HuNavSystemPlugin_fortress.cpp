@@ -1055,6 +1055,11 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     //    RCLCPP_INFO(rosnode_->get_logger(), "PREV. Human '%s' x: %4.f, y:%.4f, lv:%.4f, av:%.4f", a.name.c_str(), actorPose.Pos().X(), actorPose.Pos().Y(), a.linear_vel, a.angular_vel);
     //double yaw = normalizeAngle(a.yaw + M_PI_2);
     double yaw = a.yaw; //normalizeAngle(a.yaw);
+    //if(yaw < 0)
+    //  yaw+= 0.25;
+    //else if(yaw > 0)
+    //  yaw-= 0.25;
+    yaw -= 0.30;
     // double currAngle = actorPose.Rot().Yaw();
     // double diff = normalizeAngle(yaw - currAngle);
     // if (std::fabs(diff) > IGN_DTOR(10))
@@ -1069,7 +1074,7 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     actorPose.Pos().Z(0.8);
     //fixActorHeight(a, actorPose);
     //actorPose.Rot() = ignition::math::Quaterniond(1.5707, 0, yaw);
-    actorPose.Rot() = ignition::math::Quaterniond(0, 0, yaw);
+    actorPose.Rot() = ignition::math::Quaterniond(0, 0.27, yaw);
     //ignmsg << "Actor " << a.name << " rotation: " << actorPose.Rot() << std::endl;
 
 
