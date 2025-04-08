@@ -114,9 +114,9 @@ install(DIRECTORY worlds/
     DESTINATION share/${PROJECT_NAME}/worlds
 )
 
-install(DIRECTORY media/models
-    DESTINATION share/${PROJECT_NAME}/
-)
+# install(DIRECTORY media/models
+#     DESTINATION share/${PROJECT_NAME}/
+# )
 
 
 ament_package()

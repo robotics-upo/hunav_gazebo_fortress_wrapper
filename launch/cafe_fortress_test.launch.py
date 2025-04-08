@@ -91,7 +91,7 @@ def generate_launch_description():
     # we have in that directory the models and animations
     my_gazebo_models = PathJoinSubstitution([
         FindPackageShare('hunav_gazebo_fortress_wrapper'),
-        'models',
+        'worlds',
     ])
     
     set_env_gz_resources = SetEnvironmentVariable(
