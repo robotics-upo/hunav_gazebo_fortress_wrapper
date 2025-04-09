@@ -1047,25 +1047,27 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
       return;
     }
 
-    gz::math::Pose3d actorPose = worldPose(entity, _ecm);
-    //auto pose = _ecm.Component<gz::sim::components::Pose>(entity);
-    //gz::math::Pose3d actorPose = pose->Data();
+    gz::math::Pose3d actorPose; // = worldPose(entity, _ecm) is giving position zero!!!!
+    auto apose = _ecm.Component<gz::sim::components::WorldPose>(entity);
+    if(apose)
+    {
+      actorPose = apose->Data();
+      // double di = sqrt(pow(actorPose.Pos().X() - a.position.position.x, 2) + pow(actorPose.Pos().Y() - a.position.position.y, 2));
+      // RCLCPP_INFO(rosnode_->get_logger(), "Actor %s curr_pose: [%.4f, %.4f], new_pose: [%.4f, %.4f], D: %.4f", a.name.c_str(), actorPose.Pos().X(), actorPose.Pos().Y(), a.position.position.x, a.position.position.y, di);
+    } else {
+      RCLCPP_ERROR(rosnode_->get_logger(), "Actor %s does not have a WorldPose component", a.name.c_str());
+      continue;
+    }
     gz::math::Pose3d prevPose = actorPose;
-    // if(a.name == std::string("agent1"))
-    //    RCLCPP_INFO(rosnode_->get_logger(), "PREV. Human '%s' x: %4.f, y:%.4f, lv:%.4f, av:%.4f", a.name.c_str(), actorPose.Pos().X(), actorPose.Pos().Y(), a.linear_vel, a.angular_vel);
-    //double yaw = normalizeAngle(a.yaw + M_PI_2);
     double yaw = a.yaw; //normalizeAngle(a.yaw);
-    //if(yaw < 0)
-    //  yaw+= 0.25;
-    //else if(yaw > 0)
-    //  yaw-= 0.25;
+    // I don't know why the yaw (visually) is not correct
     yaw -= 0.30;
-    // double currAngle = actorPose.Rot().Yaw();
-    // double diff = normalizeAngle(yaw - currAngle);
-    // if (std::fabs(diff) > IGN_DTOR(10))
-    // {
-    //   yaw = normalizeAngle(currAngle + (diff * 0.1));  // 0.01, 0.005
-    // }
+    double currAngle = actorPose.Rot().Yaw();
+    double diff = normalizeAngle(yaw - currAngle);
+    if (std::fabs(diff) > IGN_DTOR(10)) //25 degrees to rads
+    {
+      yaw = normalizeAngle(currAngle + (diff * 0.01));  // 0.01, 0.005
+    }
     //RCLCPP_INFO(rosnode_->get_logger(), "Actor %s yaw: %.2f", a.name.c_str(), a.yaw);
 
     // set the pose of the actor
@@ -1073,9 +1075,8 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     actorPose.Pos().Y(a.position.position.y);
     actorPose.Pos().Z(0.8);
     //fixActorHeight(a, actorPose);
-    //actorPose.Rot() = ignition::math::Quaterniond(1.5707, 0, yaw);
-    actorPose.Rot() = ignition::math::Quaterniond(0, 0.27, yaw);
-    //ignmsg << "Actor " << a.name << " rotation: " << actorPose.Rot() << std::endl;
+    // I have to add some pitch to show the agents properly
+    actorPose.Rot() = ignition::math::Quaterniond(0, 0.35, yaw);
 
 
     // UPDATE TRAJECTORY POSE
@@ -1111,6 +1112,8 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     // Distance traveled is used to coordinate motion with the walking
     // animation: newPose(actorPose) - prevPose(actor->WorldPose)
     double distanceTraveled = (actorPose.Pos() - prevPose.Pos()).Length();
+    // if(counter_ == 500)
+    //   RCLCPP_INFO_STREAM(rosnode_->get_logger(), "Agent " << a.name.c_str() << " Distance traveled: " << distanceTraveled << " m" << std::endl);
 
     // // TODO: select better animations for each behavior
     // // and adjust the animationFactor value for each case
@@ -1175,13 +1178,14 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
 
 
     // Update actor bone trajectories based on animation time
-    double animationFactor = 6.0; //0.005; //Noé
+    double animationFactor = 5.0; //0.005; //Noé
     auto animTimeComp = _ecm.Component<gz::sim::components::AnimationTime>(entity);
     //double animTimeInSeconds = std::chrono::duration_cast<std::chrono::duration<double>>(animTimeComp->Data()).count();
     //ignmsg << "Animation time: " << animTimeInSeconds << std::endl;
-    //auto animTime = animTimeComp->Data() +
-    auto animTime =  std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    auto animTime = animTimeComp->Data() + std::chrono::duration_cast<std::chrono::steady_clock::duration>(
       std::chrono::duration<double>(distanceTraveled * animationFactor));
+    //auto animTime =  std::chrono::duration_cast<std::chrono::steady_clock::duration>(
+    //  std::chrono::duration<double>(distanceTraveled * animationFactor));
     //ignmsg << "Animation time: " << animTime.count() << std::endl;
     *animTimeComp = gz::sim::components::AnimationTime(animTime);
     //_ecm.SetComponentData<gz::sim::components::AnimationTime>(entity, animTime);
@@ -1360,8 +1364,8 @@ void HuNavSystemPluginIGN::PreUpdate(const gz::sim::UpdateInfo& _info, gz::sim::
         double currx = a.position.position.x;
         double curry = a.position.position.y;
         double dist = sqrt(pow(goalx - currx, 2) + pow(goaly - curry, 2));
-        RCLCPP_INFO(rosnode_->get_logger(), "Agent %s. Goal: %.2f, %.2f, Current pos:[%.2f, %.2f], Dist: %.2f\n",
-          a.name.c_str(), goalx, goaly, currx, curry, dist);
+        //RCLCPP_INFO(rosnode_->get_logger(), "Agent %s. Goal: %.2f, %.2f, Current pos:[%.2f, %.2f], Dist: %.2f\n",
+        //  a.name.c_str(), goalx, goaly, currx, curry, dist);
       }
     }
     updateGazeboPedestrians(_ecm, _info, updated_agents);

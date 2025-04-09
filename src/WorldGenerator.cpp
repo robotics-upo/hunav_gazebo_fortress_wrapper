@@ -519,7 +519,7 @@ bool WorldGenerator::writeActors(tinyxml2::XMLDocument &doc)
       pFilename1->SetText(std::string("models/"+animation_filename[1]).c_str());
     }
 
-    //Noé
+    //Noé - overwrite the model for the moment
     pFilename1->SetText(std::string("https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae").c_str());
     //pFilename1->SetText("/home/hunavsim_ws/src/hunav_gazebo_fortress_wrapper/worlds/models/07_01-walk.bvh");
 
