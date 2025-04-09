@@ -78,9 +78,9 @@ ros2 launch hunav_rviz2_panel hunav_rviz2_launch.py
 
 ## ToDos
 
-- [] Fix the path to found the animation models and activate the change of animation.
-- [] Prepare different environment with a robot navigating in ROS 2.
-- [] Provide a container to deploy the system. 
+- [ ] Fix the path to find the animation models and activate the change of animation.
+- [ ] Prepare different environment with a robot navigating in ROS 2.
+- [ ] Provide a container to deploy the system. 
 
 
 
