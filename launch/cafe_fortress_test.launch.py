@@ -40,8 +40,8 @@ def generate_launch_description():
 
     # agent configuration file
     agent_conf_file = PathJoinSubstitution([
-        FindPackageShare('hunav_agent_manager'),
-        'config',
+        FindPackageShare('hunav_gazebo_fortress_wrapper'),
+        'scenarios',
         LaunchConfiguration('configuration_file')
     ])
 
@@ -193,7 +193,7 @@ def generate_launch_description():
 
     # Declare the launch arguments
     declare_arg_world = DeclareLaunchArgument(
-        'base_world', default_value='example_cafe_test2.sdf',
+        'base_world', default_value='cafe_test.sdf',
         description='Specify world file name'
     )
     declare_arg_verbose = DeclareLaunchArgument(
