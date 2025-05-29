@@ -114,6 +114,10 @@ install(DIRECTORY worlds/
     DESTINATION share/${PROJECT_NAME}/worlds
 )
 
+install(DIRECTORY scenarios/
+   DESTINATION share/${PROJECT_NAME}/scenarios
+)
+
 # install(DIRECTORY media/models
 #     DESTINATION share/${PROJECT_NAME}/
 # )
