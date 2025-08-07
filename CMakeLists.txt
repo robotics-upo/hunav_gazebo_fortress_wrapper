@@ -106,18 +106,18 @@ install(TARGETS hunav_gazebo_world_generator
 install(DIRECTORY include/
         DESTINATION include
 )
-
 install(DIRECTORY launch/
     DESTINATION share/${PROJECT_NAME}/launch
 )
 install(DIRECTORY worlds/
     DESTINATION share/${PROJECT_NAME}/worlds
 )
-
 install(DIRECTORY scenarios/
    DESTINATION share/${PROJECT_NAME}/scenarios
 )
-
+install(DIRECTORY maps/
+    DESTINATION share/${PROJECT_NAME}/maps
+)
 # install(DIRECTORY media/models
 #     DESTINATION share/${PROJECT_NAME}/
 # )

@@ -1,6 +1,6 @@
 hunav_loader:
   ros__parameters:
-    map: cafe_test
+    map: cafe
     publish_people: true
     agents:
       #- agent1

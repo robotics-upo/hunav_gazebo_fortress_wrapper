@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <world name="cafe_test">
+  <world name="cafe">
 
     <gui>
       <camera name="user_camera">

@@ -7,7 +7,7 @@ from launch.actions import (IncludeLaunchDescription, RegisterEventHandler,
                             DeclareLaunchArgument, AppendEnvironmentVariable,
                             SetEnvironmentVariable, LogInfo, TimerAction)
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (PathJoinSubstitution, LaunchConfiguration, EnvironmentVariable)
+from launch.substitutions import (PathJoinSubstitution, PythonExpression, LaunchConfiguration, EnvironmentVariable)
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 from launch.event_handlers import (OnExecutionComplete, OnProcessExit,
@@ -22,7 +22,7 @@ def generate_launch_description():
     ]
 
     # World generation parameters
-    world_file_name = LaunchConfiguration('base_world')
+    #world_file_name = LaunchConfiguration('environment_name')
     gz_obs = LaunchConfiguration('use_gazebo_obs')
     rate = LaunchConfiguration('update_rate')
     robot_name = LaunchConfiguration('robot_name')
@@ -35,7 +35,7 @@ def generate_launch_description():
     world_file = PathJoinSubstitution([
         FindPackageShare('hunav_gazebo_fortress_wrapper'),
         'worlds',
-        world_file_name
+        PythonExpression(["'", LaunchConfiguration('environment_name'), ".sdf'"])
     ])
 
     # agent configuration file
@@ -193,7 +193,7 @@ def generate_launch_description():
 
     # Declare the launch arguments
     declare_arg_world = DeclareLaunchArgument(
-        'base_world', default_value='cafe_test.sdf',
+        'environment_name', default_value='cafe_test.sdf',
         description='Specify world file name'
     )
     declare_arg_verbose = DeclareLaunchArgument(
