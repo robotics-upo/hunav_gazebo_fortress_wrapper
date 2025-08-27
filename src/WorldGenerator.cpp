@@ -246,7 +246,7 @@ bool WorldGenerator::readAgentParams()
     a.position.position.z = aparams[17].as_double();
     a.yaw = aparams[18].as_double();
     tf2::Quaternion myQuaternion;
-    myQuaternion.setRPY(0, 0, aparams[9].as_double());
+    myQuaternion.setRPY(0, 0, a.yaw);
     a.position.orientation = tf2::toMsg(myQuaternion);
     a.goal_radius = aparams[19].as_double();
     a.cyclic_goals = aparams[20].as_bool();
