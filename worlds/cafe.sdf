@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <sdf version="1.7">
-  <world name="cafe">
+  <world name="cafe_world">
 
     <gui>
       <camera name="user_camera">
@@ -37,6 +37,7 @@
     </light>
 
     <include>
+      <pose>0 0 0 0 0 0</pose>
       <uri>https://fuel.gazebosim.org/1.0/OpenRobotics/models/Ground Plane</uri>
     </include>
 
@@ -64,7 +65,7 @@
     </include>
 
     <actor name="Paco">
-      <pose>0.0 0.0 0.03 0 0 1.57</pose>
+      <pose>0.0 0.0 0.03 0 0 0</pose>
       <skin>
         <filename>https://fuel.gazebosim.org/1.0/OpenRobotics/models/actor - relative paths/tip/files/meshes/talk_b.dae</filename>
         <scale>1.0</scale>

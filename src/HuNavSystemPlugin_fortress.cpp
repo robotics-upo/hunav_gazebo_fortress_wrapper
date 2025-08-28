@@ -47,7 +47,7 @@
 
 
 // The error occurs because Ignition Gazebo's `EntityComponentManager` uses a custom traits system to check for equality, and this conflicts with the standard `std::chrono::duration` equality operator. This results in an ambiguous overload for the `operator==`.
-//To resolve this issue, you can explicitly specialize the `HasEqualityOperator` trait for `std::chrono::steady_clock::duration` to indicate that it has a valid equality operator. Add the following code at the top of your source file (before any other code):
+//To resolve this issue, you can explicitly specialize the `HasEqualityOperator` trait for `std::chrono::steady_clock::duration` to indicate that it has a valid equality operator.
 namespace ignition::gazebo::v6::traits {
   template<>
   struct HasEqualityOperator<std::chrono::steady_clock::duration> {
@@ -401,6 +401,8 @@ void HuNavSystemPluginIGN::initializeAgents(gz::sim::EntityComponentManager& _ec
       gz::math::Pose3d curr_pose;
       curr_pose.Pos().X(agent.position.position.x);
       curr_pose.Pos().Y(agent.position.position.y);
+      //curr_pose.Pos().X(-agent.position.position.y);
+      //curr_pose.Pos().Y(agent.position.position.x);
       curr_pose.Pos().Z(0.35);
       curr_pose.Rot() = gz::math::Quaterniond(0, 0, ag.yaw);
 
@@ -624,6 +626,7 @@ void HuNavSystemPluginIGN::getObstacles(const gz::sim::EntityComponentManager& _
 
     // we create a default bounding box for the actor
     auto actor_size = gz::math::Vector3d(0.35, 0.35, 1.65); 
+    //auto actor_size = gz::math::Vector3d(0.35, 0.35, 0.0); 
     gz::math::AxisAlignedBox actor_bb = gz::math::AxisAlignedBox(
       actor_pose.Pos() - actor_size / 2,
       actor_pose.Pos() + actor_size / 2
@@ -699,6 +702,8 @@ void HuNavSystemPluginIGN::getObstacles(const gz::sim::EntityComponentManager& _
         }
         else
         {
+          // if the object is a mesh, we ignore it
+          // we can not cover all the possible cases
           ignmsg << "Entity " << obs_name->Data() << " has an unknown geometry" << std::endl;
           continue;
         }
@@ -724,7 +729,7 @@ void HuNavSystemPluginIGN::getObstacles(const gz::sim::EntityComponentManager& _
       else 
       {
         // if the entity has no geometry component, we can just use the center position
-        // and we build a default small bounding box around it.  
+        // to build a default small bounding box around it, and we pray.  
         //ignmsg << "Entity " << obs_name->Data() << " has no Geometry component" << std::endl;
         auto default_size = gz::math::Vector3d(0.35, 0.35, 1.0);
         gz::math::AxisAlignedBox obs_bb = gz::math::AxisAlignedBox(
@@ -781,6 +786,8 @@ bool HuNavSystemPluginIGN::getRobotState(const gz::sim::EntityComponentManager& 
   
   // 3D Pose
   gz::math::Pose3d prevPose(robotAgent_.position.position.x, robotAgent_.position.position.y, 0, 0, 0, robotAgent_.yaw);
+  //robotAgent_.position.position.x = -pose.Pos().Y(); //pose.Pos().X(); Noe
+  //robotAgent_.position.position.y = pose.Pos().Z(); //pose.Pos().Y();
   robotAgent_.position.position.x = pose.Pos().X();
   robotAgent_.position.position.y = pose.Pos().Y();
   tf2::Quaternion myQuaternion;
@@ -792,7 +799,9 @@ bool HuNavSystemPluginIGN::getRobotState(const gz::sim::EntityComponentManager& 
   if(linvel)
   {
     gz::math::Vector3d lv = linvel->Data();
-    robotAgent_.velocity.linear.x = lv.X();
+    //robotAgent_.velocity.linear.x = -lv.Y(); //lv.X(); Noe
+    //robotAgent_.velocity.linear.y = lv.X(); //lv.Y();
+    robotAgent_.velocity.linear.x = lv.X(); 
     robotAgent_.velocity.linear.y = lv.Y();
     robotAgent_.linear_vel = lv.Length();
   }
@@ -1061,7 +1070,7 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     gz::math::Pose3d prevPose = actorPose;
     double yaw = a.yaw; //normalizeAngle(a.yaw);
     // I don't know why the yaw (visually) is not correct
-    yaw -= 0.30;
+    //yaw -= 0.30;
     double currAngle = actorPose.Rot().Yaw();
     double diff = normalizeAngle(yaw - currAngle);
     if (std::fabs(diff) > IGN_DTOR(10)) //25 degrees to rads
@@ -1071,12 +1080,14 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     //RCLCPP_INFO(rosnode_->get_logger(), "Actor %s yaw: %.2f", a.name.c_str(), a.yaw);
 
     // set the pose of the actor
-    actorPose.Pos().X(a.position.position.x);
-    actorPose.Pos().Y(a.position.position.y);
+    //actorPose.Pos().X(a.position.position.x);
+    //actorPose.Pos().Y(a.position.position.y);
+    // actorPose.Pos().X(-a.position.position.y); //noe
+    // actorPose.Pos().Y(a.position.position.x);
     actorPose.Pos().Z(0.8);
     //fixActorHeight(a, actorPose);
-    // I have to add some pitch to show the agents properly
-    actorPose.Rot() = ignition::math::Quaterniond(0, 0.35, yaw);
+    // I have to add some pitch to show the agents properly (0.35)
+    actorPose.Rot() = ignition::math::Quaterniond(0, 0, yaw);
 
 
     // UPDATE TRAJECTORY POSE

@@ -89,6 +89,16 @@ private:
   bool writeActors(tinyxml2::XMLDocument &doc);
   bool writeHuNavPlugin(tinyxml2::XMLDocument &doc, int position);
 
+  void transformCoordinates(double x, double y, double theta,
+                            double &x_new, double &y_new, double &theta_new) {
+    // Rotate 90 degrees counterclockwise and translate
+    x_new = -y;
+    y_new = x;
+    theta_new = theta + M_PI / 2; // Suma 90 grados en radianes
+    // Normaliza el ángulo entre -π y π
+    theta_new = atan2(sin(theta_new), cos(theta_new));
+  }
+
   // 0 -> world plugin
   // 1 -> last actor plugin
   // 2 -> all actors plugin

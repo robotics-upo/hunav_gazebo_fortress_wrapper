@@ -107,14 +107,14 @@ def generate_launch_description():
         value=[EnvironmentVariable('GAZEBO_RESOURCE_PATH'), my_gazebo_models]
     )
     
-    # Add plugin to gazebo path
-    my_gazebo_plugins = PathJoinSubstitution([
-        FindPackageShare('hunav_gazebo_fortress_wrapper'),
-        'plugins',
-    ])
-    set_env_gz_plugins = AppendEnvironmentVariable(
-            'GZ_SIM_SYSTEM_PLUGIN_PATH',
-            my_gazebo_plugins)
+    # # Add plugin to gazebo path
+    # my_gazebo_plugins = PathJoinSubstitution([
+    #     FindPackageShare('hunav_gazebo_fortress_wrapper'),
+    #     'plugins',
+    # ])
+    # set_env_gz_plugins = AppendEnvironmentVariable(
+    #         'GZ_SIM_SYSTEM_PLUGIN_PATH',
+    #         my_gazebo_plugins)
     
 
     # the world generator will create this world
@@ -131,7 +131,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': ['-r -s -v4 ', generated_world], 'on_exit_shutdown': 'true'}.items()
+        launch_arguments={'gz_args': ['-r -s -v4 ', generated_world], 'on_exit_shutdown': 'true'}.items() #'pause': 'true'
     )
 
 
@@ -139,7 +139,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(ros_gz_sim, 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': '-g -v4'}.items()
+        launch_arguments={'gz_args': '-g -v4'}.items()  #'pause': 'true'
     )
 
 
@@ -148,9 +148,9 @@ def generate_launch_description():
         OnProcessStart(
             target_action=hunav_gazebo_worldgen_node,
             on_start=[
-                LogInfo(msg='GenerateWorld started, launching Gazebo after 2 seconds...'),
+                LogInfo(msg='GenerateWorld started, launching Gazebo after 3 seconds...'),
                 TimerAction(
-                    period=2.0,
+                    period=3.0,
                     actions=[gzserver_cmd, gzclient_cmd],
                 )
             ]
@@ -181,14 +181,14 @@ def generate_launch_description():
     # )
 
 
-    # # DO NOT Launch this if any robot localization is launched
-    # static_tf_node = Node(
-    #     package = "tf2_ros", 
-    #     executable = "static_transform_publisher",
-    #     output='screen',
-    #     arguments = ['0', '0', '0', '0', '0', '0', 'map', 'odom']
-    #     # other option: arguments = "0 0 0 0 0 0 pmb2 base_footprint".split(' ')
-    # )
+    # DO NOT Launch this if any robot localization is launched
+    static_tf_node = Node(
+        package = "tf2_ros", 
+        executable = "static_transform_publisher",
+        output='screen',
+        arguments = ['0', '0', '0', '0', '0', '0', 'map', 'odom']
+        # other option: arguments = "0 0 0 0 0 0 pmb2 base_footprint".split(' ')
+    )
 
 
     # Declare the launch arguments
@@ -239,7 +239,7 @@ def generate_launch_description():
     ld.add_action(set_env_gz_resources)
     ld.add_action(set_env_gz_append_resources)
     ld.add_action(set_env_gazebo_resources)
-    ld.add_action(set_env_gz_plugins)
+    #ld.add_action(set_env_gz_plugins)
 
     # Declare the launch arguments
     ld.add_action(declare_arg_world)
@@ -256,6 +256,7 @@ def generate_launch_description():
     # launch Gazebo
     #ld.add_action(gzserver_cmd)
     #ld.add_action(gzclient_cmd)
+    ld.add_action(static_tf_node)
     # Generate the world with the agents
     # launch hunav_loader and the WorldGenerator
     # 2 seconds later

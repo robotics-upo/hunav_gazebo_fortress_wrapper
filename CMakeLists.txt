@@ -118,6 +118,9 @@ install(DIRECTORY scenarios/
 install(DIRECTORY maps/
     DESTINATION share/${PROJECT_NAME}/maps
 )
+install(DIRECTORY behavior_trees/
+    DESTINATION share/${PROJECT_NAME}/behavior_trees
+)
 # install(DIRECTORY media/models
 #     DESTINATION share/${PROJECT_NAME}/
 # )

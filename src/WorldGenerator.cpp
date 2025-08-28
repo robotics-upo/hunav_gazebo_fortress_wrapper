@@ -56,7 +56,7 @@ WorldGenerator::WorldGenerator() : Node("hunav_gz_fortress_world_generator")
               ".cyclic_goals",
               ".goals" };
   // names of the goal parameters
-  goal_params_ = { ".x", ".y", ".h" };
+  goal_params_ = { ".x", ".y"}; //, ".h" };
 
     // 0 -> world plugin
   // 1 -> last actor plugin
@@ -155,15 +155,17 @@ bool WorldGenerator::readAgentParams()
       rclcpp::shutdown();
       return false;
     }
-    RCLCPP_INFO(this->get_logger(), "service not available, waiting again...");
+    RCLCPP_INFO(this->get_logger(), "service get parameters from hunav_loader not available, waiting again...");
   }
   RCLCPP_INFO(this->get_logger(), "Reading parameters...");
-  auto parameters = parameters_client->get_parameters({ "map", "agents" });
+  auto parameters = parameters_client->get_parameters({"map", "agents"});
 
   std::string map = parameters[0].value_to_string();
 
   // std::cout << "map parameter: " << map << std::endl;
-  // std::cout << "agent names: " << parameters[1].value_to_string() << std::endl << std::endl;
+  RCLCPP_INFO(this->get_logger(), "map parameter: %s", map.c_str());
+  //std::cout << "agent names: " << parameters[1].value_to_string() << std::endl << std::endl;
+  RCLCPP_INFO(this->get_logger(), "agent names: %s", parameters[1].value_to_string().c_str());
 
   //   for (auto &parameter : parameters) {
   //     std::cout << "\nParameter name: " << parameter.get_name() << std::endl;
@@ -175,14 +177,16 @@ bool WorldGenerator::readAgentParams()
   for (std::string an : agent_names)
   {
     //std::cout << "agent name: " << an << std::endl;
+    RCLCPP_INFO(this->get_logger(), "agent name: %s", an.c_str());
     std::vector<std::string> agent_params = params_;
     for (unsigned int i = 0; i < params_.size(); i++)
     {
       agent_params[i] = an + agent_params[i];
       // std::cout << "agent_params " << i << ": " << agent_params[i] <<
       // std::endl;
+      RCLCPP_INFO(this->get_logger(), "agent_params %d: %s", i, agent_params[i].c_str());
     }
-    auto aparams = parameters_client->get_parameters(agent_params);
+    auto aparams = parameters_client->get_parameters({agent_params});
 
     // {"agent1.id": {"type": "integer", "value": "1"},
     //"agent1.skin": {"type": "integer", "value": "0"},
@@ -219,7 +223,24 @@ bool WorldGenerator::readAgentParams()
     // std::cout << "skin: " << a.skin << std::endl;
 
     // behavior
-    a.behavior.type = aparams[2].as_int();
+     //type
+    std::string behavior_type = aparams[2].as_string();
+    if (behavior_type == "Regular")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_REGULAR;
+    else if(behavior_type == "Impassive")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_IMPASSIVE;
+    else if(behavior_type == "Surprised")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_SURPRISED;
+    else if(behavior_type == "Scared")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_SCARED;
+    else if(behavior_type == "Curious")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_CURIOUS;
+    else if(behavior_type == "Threatening")
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_THREATENING;
+    else{
+        RCLCPP_WARN(this->get_logger(), "Unknown behavior type: %s, defaulting to Regular", behavior_type.c_str());
+        a.behavior.type = hunav_msgs::msg::AgentBehavior::BEH_REGULAR;
+    }
     a.behavior.configuration = aparams[3].as_int();
     a.behavior.duration = aparams[4].as_double();
     a.behavior.once = aparams[5].as_bool();
@@ -243,10 +264,12 @@ bool WorldGenerator::readAgentParams()
     // init pose
     a.position.position.x = aparams[15].as_double();
     a.position.position.y = aparams[16].as_double();
-    a.position.position.z = aparams[17].as_double();
+    //a.position.position.x = -aparams[16].as_double();
+    //a.position.position.y = aparams[15].as_double();
+    a.position.position.z = 0.0; //aparams[17].as_double();
     a.yaw = aparams[18].as_double();
     tf2::Quaternion myQuaternion;
-    myQuaternion.setRPY(0, 0, aparams[9].as_double());
+    myQuaternion.setRPY(0, 0, a.yaw);
     a.position.orientation = tf2::toMsg(myQuaternion);
     a.goal_radius = aparams[19].as_double();
     a.cyclic_goals = aparams[20].as_bool();
@@ -262,20 +285,23 @@ bool WorldGenerator::readAgentParams()
     //           << " social_force_factor:" << a.behavior.social_force_factor
     //           << " other_force_factor:" << a.behavior.other_force_factor << std::endl;
 
-    auto goal_names = aparams[21].as_string_array();
-    for (std::string goal : goal_names)
+    //auto goal_names = aparams[21].as_string_array();
+    auto goal_names = aparams[21].as_integer_array();
+    for (auto goal : goal_names)
     {
       std::vector<std::string> gnames = goal_params_;
       for (unsigned int i = 0; i < goal_params_.size(); i++)
       {
-        gnames[i] = an + "." + goal + goal_params_[i];
+        gnames[i] = "global_goals." + std::to_string(goal) + goal_params_[i];
       }
       auto gparams = parameters_client->get_parameters({ gnames });
       geometry_msgs::msg::Pose p;
       p.position.x = gparams[0].as_double();
       p.position.y = gparams[1].as_double();
+      //p.position.x = -gparams[1].as_double();
+      //p.position.y = gparams[0].as_double();
       tf2::Quaternion quat;
-      quat.setRPY(0, 0, gparams[2].as_double());
+      quat.setRPY(0, 0, 0); //gparams[2].as_double()
       p.orientation = tf2::toMsg(quat);
       a.goals.push_back(p);
       //std::cout << "goal: " << goal << " x:" << p.position.x << " y:" << p.position.y << std::endl;
@@ -483,6 +509,12 @@ bool WorldGenerator::writeActors(tinyxml2::XMLDocument &doc)
     tinyxml2::XMLElement* pPose = doc.NewElement("pose");
     std::string pose = std::to_string(a.position.position.x) + " " + std::to_string(a.position.position.y) + " " +
                        std::to_string(a.position.position.z) + " 0 0 " + std::to_string(a.yaw);
+    // double x_new, y_new, theta_new;
+    // we transform the coordinates from ROS to Gazebo
+    // transformCoordinates(a.position.position.x, a.position.position.y, a.yaw,
+    //                         double &x_new, double &y_new, double &theta_new);
+    // std::string pose = std::to_string(x_new) + " " + std::to_string(y_new) + " " +
+    //                    std::to_string(a.position.position.z) + " 0 0 " + std::to_string(theta_new);
     pPose->SetText(pose.c_str());
     // skin
     tinyxml2::XMLElement* pSkin = doc.NewElement("skin");
@@ -519,7 +551,7 @@ bool WorldGenerator::writeActors(tinyxml2::XMLDocument &doc)
       pFilename1->SetText(std::string("models/"+animation_filename[1]).c_str());
     }
 
-    //Noé - overwrite the model for the moment
+    //Noé - overwrite the animation model for the moment
     pFilename1->SetText(std::string("https://fuel.gazebosim.org/1.0/Mingfei/models/actor/tip/files/meshes/walk.dae").c_str());
     //pFilename1->SetText("/home/hunavsim_ws/src/hunav_gazebo_fortress_wrapper/worlds/models/07_01-walk.bvh");
 
