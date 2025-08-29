@@ -1080,8 +1080,8 @@ void HuNavSystemPluginIGN::updateGazeboPedestrians(gz::sim::EntityComponentManag
     //RCLCPP_INFO(rosnode_->get_logger(), "Actor %s yaw: %.2f", a.name.c_str(), a.yaw);
 
     // set the pose of the actor
-    //actorPose.Pos().X(a.position.position.x);
-    //actorPose.Pos().Y(a.position.position.y);
+    actorPose.Pos().X(a.position.position.x);
+    actorPose.Pos().Y(a.position.position.y);
     // actorPose.Pos().X(-a.position.position.y); //noe
     // actorPose.Pos().Y(a.position.position.x);
     actorPose.Pos().Z(0.8);
